@@ -1,94 +1,119 @@
 import streamlit as st
 import google.generativeai as genai
 import os
+import random
 
 # --- SEITEN-KONFIGURATION ---
-st.set_page_config(page_title="Tourismus-Trainer", page_icon="🏔️")
+st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎲")
 
-# --- PASSWORT-SCHUTZ ---
-PASSWORT = "Start2025" # Hier dein Passwort ändern
+# --- PASSWORT ---
+PASSWORT = "Start2025"
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.title("🔒 Login Tourismus-Training")
-    eingabe = st.text_input("Bitte Zugangscode eingeben:", type="password")
+    eingabe = st.text_input("Code:", type="password")
     if st.button("Anmelden"):
         if eingabe == PASSWORT:
             st.session_state.authenticated = True
             st.rerun()
         else:
-            st.error("Falscher Code.")
+            st.error("Falsch.")
     st.stop()
 
-# --- SZENARIO-AUSWAHL (Das Herzstück) ---
+# --- SZENARIEN DEFINITIONEN (Der Pool an Möglichkeiten) ---
+# Hier liegen die verschiedenen Varianten pro Kategorie
+
+VARIANTS_HOTEL = [
+    """Szenario A: 'Der Regen'.
+    Du bist Herr Grander. Es ist 14:30 Uhr, du bist nass geworden. Zimmer nicht fertig.
+    Du willst sofort duschen. Du bist arrogant und ungeduldig.""",
+    
+    """Szenario B: 'Die Minibar'.
+    Du bist Herr Grander. Du checkst gerade aus. Auf der Rechnung stehen 35€ für Champagner aus der Minibar.
+    Du hast den aber nie getrunken! Du witterst Betrug. Du bist misstrauisch und laut.""",
+    
+    """Szenario C: 'Der Lärm'.
+    Du bist Herr Grander. Es ist 23:00 Uhr. Du rufst von Zimmer 305 an.
+    Die Nachbarn schauen laut Fernsehen. Du kannst nicht schlafen. Du forderst, dass das sofort aufhört oder du willst ein anderes Zimmer."""
+]
+
+VARIANTS_SKISCHULE = [
+    """Szenario A: 'Helikopter-Mom'.
+    Du bist eine Mutter. Dein Kind Leo (6) hat im Kurs geweint.
+    Du wirfst dem Skilehrer vor, er hätte Leo vernachlässigt. Du bist hysterisch.""",
+    
+    """Szenario B: 'Falsche Gruppe'.
+    Du bist ein Vater. Dein Sohn ist in Gruppe 3 eingeteilt worden.
+    Du bist überzeugt, er ist ein Profi und gehört in Gruppe 1. Das ist eine Beleidigung!
+    Du bist besserwisserisch und arrogant.""",
+]
+
+VARIANTS_SEILBAHN = [
+    """Szenario A: 'Das Drehkreuz'.
+    Dein Skipass geht nicht. Du stehst seit 20 Min an. Du glaubst, das System ist schuld.
+    Du hast es eilig und wirst aggressiv.""",
+    
+    """Szenario B: 'Die Rückerstattung'.
+    Es ist 11:00 Uhr. Der Wind hat aufgefrischt, obere Lifte stehen.
+    Du willst dein Geld für die Tageskarte zurück. Sofort.
+    Du bist stur und lässt nicht mit dir reden."""
+]
+
+# --- SIDEBAR ---
 with st.sidebar:
-    st.header("🎭 Szenario wählen")
-    szenario_typ = st.selectbox(
-        "Trainings-Situation:",
-        ("Hotel / Rezeption (Herr Grander)", 
-         "Skischule (Helikopter-Eltern)", 
-         "Seilbahn (Ticket-Problem)")
-    )
-
-    # Hier definieren wir die Persönlichkeiten
-    if "Hotel" in szenario_typ:
-        SYSTEM_INSTRUCTION = """
-        Du bist „Herr Grander“, ein verärgerter Hotelgast.
-        Szenario: 14:30 Uhr, Regen. Zimmer (Junior Suite) nicht fertig.
-        Verhalten: Arrogant, ungeduldig, fordernd (Level 8/10).
-        WICHTIG: Bei Codewort "FEEDBACK" wechsle zum Coach und analysiere das Gespräch.
-        """
-    elif "Skischule" in szenario_typ:
-        SYSTEM_INSTRUCTION = """
-        Du bist eine überbesorgte Mutter („Helikopter-Mom“).
-        Szenario: Dein Kind (Leo, 6 Jahre) ist im Skikurs angeblich überfordert und hat geweint.
-        Du machst dem Skilehrer Vorwürfe, dass er nicht aufpasst.
-        Verhalten: Emotional, hysterisch, beschützend.
-        WICHTIG: Bei Codewort "FEEDBACK" wechsle zum Coach und analysiere das Gespräch.
-        """
-    elif "Seilbahn" in szenario_typ:
-        SYSTEM_INSTRUCTION = """
-        Du bist ein aggressiver Skifahrer am Drehkreuz.
-        Szenario: Dein teurer Skipass geht nicht, das Drehkreuz sperrt.
-        Du stehst seit 20 Minuten an. Du behauptest, das System ist schuld.
-        Verhalten: Laut, aggressiv, du hast es eilig.
-        WICHTIG: Bei Codewort "FEEDBACK" wechsle zum Coach und analysiere das Gespräch.
-        """
-
+    st.header("🎭 Kategorie wählen")
+    kategorie = st.selectbox("Bereich:", ("Hotel", "Skischule", "Seilbahn"))
+    
     st.markdown("---")
+    st.write("👇 Klicke hier für eine neue Situation:")
     
-    # Automatische Löschung bei Szenario-Wechsel
-    if "last_scenario" not in st.session_state:
-        st.session_state.last_scenario = szenario_typ
-    
-    if st.session_state.last_scenario != szenario_typ:
+    # Der "Würfel"-Button
+    if st.button("🎲 Neue Situation würfeln"):
         st.session_state.messages = []
         st.session_state.chat = None
-        st.session_state.last_scenario = szenario_typ
+        # Hier wird gewürfelt!
+        if kategorie == "Hotel":
+            st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
+        elif kategorie == "Skischule":
+            st.session_state.current_scenario = random.choice(VARIANTS_SKISCHULE)
+        elif kategorie == "Seilbahn":
+            st.session_state.current_scenario = random.choice(VARIANTS_SEILBAHN)
         st.rerun()
 
-    # Manueller Neustart Button
-    if st.button("Gespräch neu starten"):
-        st.session_state.messages = []
-        st.session_state.chat = None
-        st.rerun()
-        
     if st.button("Logout"):
         st.session_state.authenticated = False
         st.rerun()
 
-# --- HAUPTBEREICH ---
-st.title(f"Training: {szenario_typ}")
-st.caption("KI-gestützter Simulator für schwierige Gespräche")
+# --- INITIALISIERUNG (Beim ersten Laden auch würfeln) ---
+if "current_scenario" not in st.session_state:
+    st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
 
-# --- API KEY CHECK ---
+
+# --- HAUPTBEREICH ---
+st.title("Training: " + kategorie)
+
+# Anzeige für den Trainer (damit du weißt, was los ist)
+with st.expander("ℹ️ Aktuelles Szenario (Nur für Trainer sichtbar)", expanded=True):
+    st.info(st.session_state.current_scenario)
+
+# --- PROMPT ZUSAMMENBAUEN ---
+# Wir nehmen das gewürfelte Szenario und packen die "Coach"-Anweisung immer dazu
+SYSTEM_INSTRUCTION = f"""
+Du bist ein Rollenspiel-Bot.
+{st.session_state.current_scenario}
+Verhalte dich extrem realistisch entsprechend der Rolle (Level 8/10).
+WICHTIG: Wenn der User "FEEDBACK" schreibt, wechsle SOFORT die Rolle zum Business-Coach.
+Analysiere dann das Gespräch: Was war gut? Wo war der Fehler? Gib 3 bessere Formulierungsvorschläge.
+"""
+
+# --- API KEY ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
     with st.sidebar:
-        st.warning("API Key fehlt.")
         api_key = st.text_input("API Key", type="password")
 
 # --- CHAT LOGIK ---
