@@ -4,24 +4,51 @@ import os
 
 # --- SEITEN-KONFIGURATION ---
 st.set_page_config(page_title="Hotel-Training", page_icon="🏨")
+
+# --- DER TÜRSTEHER (Passwort-Schutz) ---
+# Ändere "Start2025" in dein Wunsch-Passwort
+PASSWORT = "Start2025"
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔒 Geschützter Bereich")
+    eingabe = st.text_input("Bitte Zugangscode eingeben:", type="password")
+    if st.button("Anmelden"):
+        if eingabe == PASSWORT:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Falscher Code. Zugriff verweigert.")
+    st.stop()  # HIER STOPPT DIE APP, wenn das Passwort fehlt!
+
+# --- AB HIER BEGINNT DIE EIGENTLICHE APP (nur sichtbar nach Login) ---
+
 st.title("🏨 Der schwierige Gast")
 st.caption("Trainings-Simulator mit Gemini 2.0")
 
-# --- API KEY MANAGEMENT (Der Profi-Teil) ---
-# Die App schaut zuerst in den Tresor (Secrets). Wenn da nichts ist, fragt sie den User.
+# --- API KEY MANAGEMENT ---
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
     with st.sidebar:
+        st.warning("API Key nicht im Tresor gefunden.")
         api_key = st.text_input("Google API Key eingeben", type="password")
 
-# --- BUTTONS (Neustart) ---
+# --- BUTTONS ---
 with st.sidebar:
     st.markdown("---")
     if st.button("Gespräch neu starten"):
         st.session_state.messages = []
         st.session_state.chat = None
         st.rerun()
+    
+    # Logout Button
+    if st.button("Logout"):
+        st.session_state.authenticated = False
+        st.rerun()
+        
     st.info("Tipp: Schreibe 'FEEDBACK' für eine Analyse.")
 
 # --- SYSTEM PROMPT ---
@@ -47,7 +74,7 @@ if "chat" not in st.session_state or st.session_state.chat is None:
             response = st.session_state.chat.send_message("Start")
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error(f"Fehler: {e}")
+            st.error(f"Fehler beim Verbinden: {e}")
 
 # --- CHAT VERLAUF ---
 for message in st.session_state.messages:
@@ -56,18 +83,14 @@ for message in st.session_state.messages:
 
 # --- EINGABE ---
 if prompt := st.chat_input("Deine Antwort..."):
-    if not api_key:
-        st.warning("Bitte API Key eingeben (oder in Secrets hinterlegen).")
-    else:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-        try:
-            response = st.session_state.chat.send_message(prompt)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-            with st.chat_message("assistant"):
-                st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Fehler: {e}")
-            st.error(f"Ein Fehler ist aufgetreten: {e}")
+    try:
+        response = st.session_state.chat.send_message(prompt)
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        with st.chat_message("assistant"):
+            st.markdown(response.text)
+    except Exception as e:
+        st.error(f"Fehler: {e}")
