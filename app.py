@@ -1,16 +1,24 @@
 import streamlit as st
 import google.generativeai as genai
+import os
 
 # --- SEITEN-KONFIGURATION ---
 st.set_page_config(page_title="Hotel-Training", page_icon="🏨")
 st.title("🏨 Der schwierige Gast")
 st.caption("Trainings-Simulator mit Gemini 2.0")
 
-# --- SIDEBAR: API KEY & RESET ---
+# --- API KEY MANAGEMENT (Der Profi-Teil) ---
+# Die App schaut zuerst in den Tresor (Secrets). Wenn da nichts ist, fragt sie den User.
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except:
+    with st.sidebar:
+        api_key = st.text_input("Google API Key eingeben", type="password")
+
+# --- BUTTONS (Neustart) ---
 with st.sidebar:
-    api_key = st.text_input("Google API Key eingeben", type="password")
     st.markdown("---")
-    if st.button("Neustart"):
+    if st.button("Gespräch neu starten"):
         st.session_state.messages = []
         st.session_state.chat = None
         st.rerun()
@@ -34,9 +42,7 @@ if "chat" not in st.session_state or st.session_state.chat is None:
     if api_key:
         try:
             genai.configure(api_key=api_key)
-            # HIER IST DIE ÄNDERUNG: Wir nutzen dein verfügbares Modell
             model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
-            
             st.session_state.chat = model.start_chat(history=[])
             response = st.session_state.chat.send_message("Start")
             st.session_state.messages.append({"role": "assistant", "content": response.text})
@@ -51,7 +57,7 @@ for message in st.session_state.messages:
 # --- EINGABE ---
 if prompt := st.chat_input("Deine Antwort..."):
     if not api_key:
-        st.warning("Bitte erst den API Key links eingeben!")
+        st.warning("Bitte API Key eingeben (oder in Secrets hinterlegen).")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -63,4 +69,5 @@ if prompt := st.chat_input("Deine Antwort..."):
             with st.chat_message("assistant"):
                 st.markdown(response.text)
         except Exception as e:
+            st.error(f"Fehler: {e}")
             st.error(f"Ein Fehler ist aufgetreten: {e}")
