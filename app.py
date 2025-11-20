@@ -62,15 +62,15 @@ if st.session_state.user_role == "kunde":
 VARIANTS_HOTEL = [
     """Szenario: 'Der Regen'.
     Es ist 14:30 Uhr, Gast ist nass. Zimmer nicht fertig.
-    Gast ist arrogant und ungeduldig (8/10).""",
+    Du bist Herr Schuster. Du bist arrogant und ungeduldig (8/10).""",
     
     """Szenario: 'Die Minibar'.
     Gast checkt aus. Rechnung: 35€ für Champagner.
-    Gast bestreitet das vehement und wittert Betrug. Misstrauisch.""",
+    Du bist Herr Schuster. Du bestreitest das vehement und witterst Betrug. Misstrauisch.""",
     
     """Szenario: 'Der Lärm'.
     23:00 Uhr. Nachbarn schauen laut TV.
-    Gast kann nicht schlafen und fordert sofortige Ruhe oder Zimmerwechsel."""
+    Du bist Herr Schuster. Du kannst nicht schlafen und forderst sofortige Ruhe oder Zimmerwechsel."""
 ]
 
 VARIANTS_SKISCHULE = [
@@ -129,7 +129,7 @@ with st.sidebar:
             st.session_state.current_scenario = random.choice(VARIANTS_SKISCHULE)
         elif kategorie == "Seilbahn":
             st.session_state.current_scenario = random.choice(VARIANTS_SEILBAHN)
-        st.rerun() # <--- HIER WAR DER FEHLER, JETZT KORRIGIERT
+        st.rerun() 
 
     st.markdown("---")
     if st.button("Logout"):
