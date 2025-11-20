@@ -3,146 +3,130 @@ import google.generativeai as genai
 import os
 import random
 
-# --- SEITEN-KONFIGURATION ---
+# --- 1. SEITEN-KONFIGURATION ---
 st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎲")
 
-# --- PASSWORT ---
-PASSWORT = "Start2025"
+# --- 2. PASSWORT-EINSTELLUNGEN ---
+PW_KUNDE = "Start2025"     # Für Kunden (Max. 3 Versuche)
+PW_ADMIN = "GernotChef"    # Für dich (Unendlich)
+MAX_VERSUCHE = 3           # Anzahl der Demo-Versuche für Kunden
 
+# --- 3. LOGIN LOGIK ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+    st.session_state.user_role = None
 
 if not st.session_state.authenticated:
     st.title("🔒 Login Tourismus-Training")
+    st.write("Bitte geben Sie Ihren Zugangscode ein.")
     eingabe = st.text_input("Code:", type="password")
+    
     if st.button("Anmelden"):
-        if eingabe == PASSWORT:
+        if eingabe == PW_KUNDE:
             st.session_state.authenticated = True
+            st.session_state.user_role = "kunde"
+            st.rerun()
+        elif eingabe == PW_ADMIN:
+            st.session_state.authenticated = True
+            st.session_state.user_role = "admin"
             st.rerun()
         else:
-            st.error("Falsch.")
-    st.stop()
+            st.error("Unbekannter Code.")
+    st.stop() # Hier stoppt die App, solange man nicht eingeloggt ist
 
-# --- SZENARIEN DEFINITIONEN (Der Pool an Möglichkeiten) ---
-# Hier liegen die verschiedenen Varianten pro Kategorie
+# --- 4. DEMO-ZÄHLER PRÜFEN (Nur für Kunden) ---
+if "demo_versuche" not in st.session_state:
+    st.session_state.demo_versuche = 0
 
+if st.session_state.user_role == "kunde":
+    if st.session_state.demo_versuche >= MAX_VERSUCHE:
+        st.balloons()
+        st.warning("🏁 Die kostenlose Demo-Phase ist beendet.")
+        st.markdown(f"""
+        ### Vielen Dank fürs Testen!
+        Sie haben {MAX_VERSUCHE} Szenarien absolviert.
+        
+        **Möchten Sie dieses Tool für Ihr Unternehmen nutzen?**
+        Diese KI kann exakt auf Ihre Region, Ihre Tonalität und Ihre Gäste angepasst werden.
+        
+        👉 **Kontakt:** Gernot Riedel | [Dein Link/Email hier]
+        """)
+        
+        if st.button("Zurück zum Login"):
+            st.session_state.authenticated = False
+            st.session_state.demo_versuche = 0
+            st.rerun()
+        st.stop() # Hier ist Schluss für den Kunden
+
+# --- 5. SZENARIEN POOL (Inhalt) ---
 VARIANTS_HOTEL = [
-    """Szenario A: 'Der Regen'.
-    Du bist Herr Grander. Es ist 14:30 Uhr, du bist nass geworden. Zimmer nicht fertig.
-    Du willst sofort duschen. Du bist arrogant und ungeduldig.""",
+    """Szenario: 'Der Regen'.
+    Es ist 14:30 Uhr, Gast ist nass. Zimmer nicht fertig.
+    Gast ist arrogant und ungeduldig (8/10).""",
     
-    """Szenario B: 'Die Minibar'.
-    Du bist Herr Grander. Du checkst gerade aus. Auf der Rechnung stehen 35€ für Champagner aus der Minibar.
-    Du hast den aber nie getrunken! Du witterst Betrug. Du bist misstrauisch und laut.""",
+    """Szenario: 'Die Minibar'.
+    Gast checkt aus. Rechnung: 35€ für Champagner.
+    Gast bestreitet das vehement und wittert Betrug. Misstrauisch.""",
     
-    """Szenario C: 'Der Lärm'.
-    Du bist Herr Grander. Es ist 23:00 Uhr. Du rufst von Zimmer 305 an.
-    Die Nachbarn schauen laut Fernsehen. Du kannst nicht schlafen. Du forderst, dass das sofort aufhört oder du willst ein anderes Zimmer."""
+    """Szenario: 'Der Lärm'.
+    23:00 Uhr. Nachbarn schauen laut TV.
+    Gast kann nicht schlafen und fordert sofortige Ruhe oder Zimmerwechsel."""
 ]
 
 VARIANTS_SKISCHULE = [
-    """Szenario A: 'Helikopter-Mom'.
-    Du bist eine Mutter. Dein Kind Leo (6) hat im Kurs geweint.
-    Du wirfst dem Skilehrer vor, er hätte Leo vernachlässigt. Du bist hysterisch.""",
+    """Szenario: 'Helikopter-Mom'.
+    Mutter holt Kind (Leo, 6) ab. Er hat geweint.
+    Sie wirft dem Skilehrer vor, er hätte Leo vernachlässigt. Hysterisch.""",
     
-    """Szenario B: 'Falsche Gruppe'.
-    Du bist ein Vater. Dein Sohn ist in Gruppe 3 eingeteilt worden.
-    Du bist überzeugt, er ist ein Profi und gehört in Gruppe 1. Das ist eine Beleidigung!
-    Du bist besserwisserisch und arrogant.""",
+    """Szenario: 'Falsche Gruppe'.
+    Vater beschwert sich. Sein Sohn sei ein Profi, wurde aber in Gruppe 3 gesteckt.
+    Er empfindet das als Beleidigung. Besserwisserisch.""",
+    
+    """Szenario: 'Geld zurück'.
+    Kind ist nach 1 Stunde krank geworden.
+    Eltern verlangen Geld für den 5-Tages-Kurs zurück. Stur."""
 ]
 
 VARIANTS_SEILBAHN = [
-    """Szenario A: 'Das Drehkreuz'.
-    Dein Skipass geht nicht. Du stehst seit 20 Min an. Du glaubst, das System ist schuld.
-    Du hast es eilig und wirst aggressiv.""",
+    """Szenario: 'Das Drehkreuz'.
+    Skipass geht nicht. Gast steht seit 20 Min an.
+    Glaubt, das System ist schuld. Hat es eilig, aggressiv.""",
     
-    """Szenario B: 'Die Rückerstattung'.
-    Es ist 11:00 Uhr. Der Wind hat aufgefrischt, obere Lifte stehen.
-    Du willst dein Geld für die Tageskarte zurück. Sofort.
-    Du bist stur und lässt nicht mit dir reden."""
+    """Szenario: 'Sturm'.
+    Obere Lifte sind wegen Wind zu.
+    Gast will Tageskarte stornieren, obwohl er schon gefahren ist. Uneinsichtig."""
 ]
 
-# --- SIDEBAR ---
+# --- 6. SEITENLEISTE (Steuerung) ---
 with st.sidebar:
-    st.header("🎭 Kategorie wählen")
-    kategorie = st.selectbox("Bereich:", ("Hotel", "Skischule", "Seilbahn"))
+    # Info-Anzeige für den User
+    if st.session_state.user_role == "kunde":
+        st.write(f"Test-Modus: Runde {st.session_state.demo_versuche + 1} von {MAX_VERSUCHE}")
+        st.progress((st.session_state.demo_versuche) / MAX_VERSUCHE)
+    else:
+        st.success(f"Angemeldet als: {PW_ADMIN} (Admin)")
+
+    st.header("🎭 Einstellung")
+    kategorie = st.selectbox("Bereich wählen:", ("Hotel", "Skischule", "Seilbahn"))
     
     st.markdown("---")
-    st.write("👇 Klicke hier für eine neue Situation:")
+    st.write("👇 Nächstes Training:")
     
     # Der "Würfel"-Button
     if st.button("🎲 Neue Situation würfeln"):
+        # Zähler nur erhöhen, wenn es ein Kunde ist
+        if st.session_state.user_role == "kunde":
+            st.session_state.demo_versuche += 1
+            
+        # Chat resetten
         st.session_state.messages = []
         st.session_state.chat = None
-        # Hier wird gewürfelt!
+        
+        # Würfeln
         if kategorie == "Hotel":
             st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
         elif kategorie == "Skischule":
             st.session_state.current_scenario = random.choice(VARIANTS_SKISCHULE)
         elif kategorie == "Seilbahn":
             st.session_state.current_scenario = random.choice(VARIANTS_SEILBAHN)
-        st.rerun()
-
-    if st.button("Logout"):
-        st.session_state.authenticated = False
-        st.rerun()
-
-# --- INITIALISIERUNG (Beim ersten Laden auch würfeln) ---
-if "current_scenario" not in st.session_state:
-    st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
-
-
-# --- HAUPTBEREICH ---
-st.title("Training: " + kategorie)
-
-# Anzeige für den Trainer (damit du weißt, was los ist)
-with st.expander("ℹ️ Aktuelles Szenario (Nur für Trainer sichtbar)", expanded=True):
-    st.info(st.session_state.current_scenario)
-
-# --- PROMPT ZUSAMMENBAUEN ---
-# Wir nehmen das gewürfelte Szenario und packen die "Coach"-Anweisung immer dazu
-SYSTEM_INSTRUCTION = f"""
-Du bist ein Rollenspiel-Bot.
-{st.session_state.current_scenario}
-Verhalte dich extrem realistisch entsprechend der Rolle (Level 8/10).
-WICHTIG: Wenn der User "FEEDBACK" schreibt, wechsle SOFORT die Rolle zum Business-Coach.
-Analysiere dann das Gespräch: Was war gut? Wo war der Fehler? Gib 3 bessere Formulierungsvorschläge.
-"""
-
-# --- API KEY ---
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except:
-    with st.sidebar:
-        api_key = st.text_input("API Key", type="password")
-
-# --- CHAT LOGIK ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "chat" not in st.session_state or st.session_state.chat is None:
-    if api_key:
-        try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
-            st.session_state.chat = model.start_chat(history=[])
-            response = st.session_state.chat.send_message("Start")
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"Fehler: {e}")
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if prompt := st.chat_input("Deine Antwort..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    try:
-        response = st.session_state.chat.send_message(prompt)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
-        with st.chat_message("assistant"):
-            st.markdown(response.text)
-    except Exception as e:
-        st.error(f"Fehler: {e}")
+        st.rerun
