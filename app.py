@@ -203,11 +203,11 @@ with st.sidebar:
             st.session_state.current_scenario = random.choice(VARIANTS_SEILBAHN)
     elif kategorie == "Restaurant":
         st.session_state.current_scenario = random.choice(VARIANTS_RESTAURANT)
-        elif kategorie == "Wellness/Spa":
+    elif kategorie == "Wellness/Spa":
         st.session_state.current_scenario = random.choice(VARIANTS_WELLNESS)
-        elif kategorie == "Einzelhandel":
+    elif kategorie == "Einzelhandel":
         st.session_state.current_scenario = random.choice(VARIANTS_EINZELHANDEL)
-        elif kategorie == "Touristeninformation":
+    elif kategorie == "Touristeninformation":
         st.session_state.current_scenario = random.choice(VARIANTS_TOURISTINFO)
         st.rerun() 
 
@@ -295,5 +295,6 @@ if prompt := st.chat_input("Deine Antwort..."):
             st.markdown(response.text)
     except Exception as e:
         st.error(f"Fehler bei der Antwort: {e}")
+
 
 
