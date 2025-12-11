@@ -44,7 +44,6 @@ if st.session_state.user_role == "kunde":
         st.balloons()
         st.warning("🏁 Die kostenlose Demo-Phase ist beendet.")
         
-        # Stabile Text-Variable für Abschlussnachricht
         msg = f"""
         ### Vielen Dank fürs Testen!
         Sie haben {MAX_VERSUCHE} Szenarien absolviert.
@@ -63,7 +62,7 @@ if st.session_state.user_role == "kunde":
             st.rerun()
         st.stop()
 
-# --- 5. SZENARIEN POOL (Praxisnah & Realistisch) ---
+# --- 5. SZENARIEN POOL ---
 
 VARIANTS_HOTEL = [
     """Deine Rolle: Herr Schuster, Gast.
@@ -193,7 +192,6 @@ VARIANTS_TOURISTINFO = [
 
 # --- 6. SEITENLEISTE (Steuerung) ---
 with st.sidebar:
-    # Info-Anzeige
     if st.session_state.user_role == "kunde":
         st.write(f"Test-Modus: Runde {st.session_state.demo_versuche + 1} von {MAX_VERSUCHE}")
         st.progress((st.session_state.demo_versuche) / MAX_VERSUCHE)
@@ -202,13 +200,11 @@ with st.sidebar:
 
     st.header("🎭 Einstellungen")
     
-    # KATEGORIE
     kategorie = st.selectbox(
         "Bereich wählen:", 
         ("Hotel", "Skischule", "Seilbahn", "Restaurant", "Wellness/Spa", "Einzelhandel", "Touristeninformation")
     )
 
-    # SCHWIERIGKEIT
     st.markdown("### 🎚️ Schwierigkeit")
     difficulty_selection = st.select_slider(
         "Wie hartnäckig ist der Gast?",
@@ -216,9 +212,148 @@ with st.sidebar:
         value="🔴 Schwer"
     )
 
-    # DEFINITION DER HARTNÄCKIGKEIT (Das Gehirn der Simulation)
+    # Hier habe ich die Struktur vereinfacht, damit keine Syntax-Fehler passieren
     DIFFICULTY_PROMPTS = {
-        "🟢 Einfach": """
-        LEVEL: KOOPERATIV (3/10).
-        VERHALTEN: Du bist zwar kurz enttäuscht/genervt, aber du suchst Harmonie.
-        HARTNÄCKIGKEIT: Sobald der Mitarbeiter eine freundliche Entschuldigung O
+        "🟢 Einfach": "LEVEL: KOOPERATIV (3/10). Du bist zwar kurz enttäuscht, suchst aber Harmonie. Sobald eine Entschuldigung kommt, bist du zufrieden.",
+        "🟡 Mittel": "LEVEL: FORDERND (6/10). Du bist genervt. Du lässt dich nicht mit Floskeln abspeisen. Du willst eine konkrete Lösung.",
+        "🔴 Schwer": "LEVEL: ESKALATION (10/10). Du bist wütend, aggressiv und stur. Lehne die ersten 2 Lösungsversuche ab! Fordere den Vorgesetzten."
+    }
+
+    selected_difficulty_prompt = DIFFICULTY_PROMPTS[difficulty_selection]
+    
+    st.markdown("---")
+    st.write("👇 Nächstes Training:")
+    
+    if st.button("🎲 Neue Situation würfeln"):
+        if st.session_state.user_role == "kunde":
+            st.session_state.demo_versuche += 1
+            
+        st.session_state.messages = []
+        st.session_state.chat = None
+        
+        # Mapping der Listen
+        scenarios_map = {
+            "Hotel": VARIANTS_HOTEL,
+            "Skischule": VARIANTS_SKISCHULE,
+            "Seilbahn": VARIANTS_SEILBAHN,
+            "Restaurant": VARIANTS_RESTAURANT,
+            "Wellness/Spa": VARIANTS_WELLNESS,
+            "Einzelhandel": VARIANTS_EINZELHANDEL,
+            "Touristeninformation": VARIANTS_TOURISTINFO
+        }
+        
+        st.session_state.current_scenario = random.choice(scenarios_map[kategorie])
+        st.session_state.current_difficulty = selected_difficulty_prompt
+        st.rerun() 
+
+    st.markdown("---")
+    if st.button("Logout"):
+        st.session_state.authenticated = False
+        st.rerun()
+
+# --- 7. INITIALISIERUNG ---
+if "current_scenario" not in st.session_state:
+    st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
+if "current_difficulty" not in st.session_state:
+    st.session_state.current_difficulty = DIFFICULTY_PROMPTS["🔴 Schwer"]
+
+# --- 8. HAUPTBEREICH ANZEIGE ---
+st.title(f"Training: {kategorie}")
+
+with st.expander("ℹ️ Aktuelles Szenario (Bitte lesen)", expanded=True):
+    st.info(st.session_state.current_scenario)
+    if "KOOPERATIV" in st.session_state.current_difficulty:
+        st.success("Modus: 🟢 Einfach (Kooperativ)")
+    elif "FORDERND" in st.session_state.current_difficulty:
+        st.warning("Modus: 🟡 Mittel (Fordernd)")
+    else:
+        st.error("Modus: 🔴 Schwer (Eskalation)")
+
+# --- 9. KI KONFIGURATION (System Prompt) ---
+SYSTEM_INSTRUCTION = f"""
+Du bist KEINE KI. Du bist ein echter Mensch in einer Stresssituation.
+Dies ist eine Simulation für Tourismus-Mitarbeiter.
+Deine Aufgabe ist es, absolut realistisch zu wirken.
+
+DEINE ROLLE & SZENARIO:
+{st.session_state.current_scenario}
+
+DEIN VERHALTEN & HARTNÄCKIGKEIT:
+{st.session_state.current_difficulty}
+
+DIE REGELN FÜR REALISMUS:
+1. DEIN GEGENÜBER: Du sprichst IMMER mit einem MITARBEITER (Rezeptionist, Kellner, etc.). Du sprichst NIE mit anderen Gästen oder Selbstgespräche. Sprich den Mitarbeiter direkt an!
+
+2. SPRACHE: Sprich gesprochene Alltagssprache!
+   - Nutze kurze Sätze.
+   - Wenn du wütend bist: Nutze Ausrufezeichen, Großschreibung für Betonung, wiederhole dich.
+   - Vermeide "gestelzte" Sprache wie "Ich möchte meinen Unmut äußern". Sag lieber: "Das geht gar nicht!"
+
+3. KEIN SCHNELLES NACHGEBEN (Besonders bei ROT/GELB):
+   - Lass dich nicht von der ersten Floskel ("Tut mir leid") beruhigen.
+   - Teste, ob der Mitarbeiter es ernst meint.
+   - Sei ruhig auch mal unfair oder emotional, wie ein echter Gast.
+
+4. START: Beginne das Gespräch sofort und direkt mit deinem Problem ("Entschuldigung, ich habe ein Problem..." oder "Sagen Sie mal...!").
+
+COACHING MODUS:
+Erst wenn der User das Codewort "FEEDBACK" schreibt (oder die Situation perfekt gelöst hat), legst du die Rolle ab.
+Dann bist du ein sachlicher Kommunikationstrainer und gibst Feedback:
+- Was war gut?
+- Was war schlecht?
+- 3 bessere Formulierungen.
+"""
+
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except:
+    with st.sidebar:
+        st.warning("⚠️ API Key nicht in Secrets gefunden.")
+        api_key = st.text_input("API Key manuell eingeben", type="password")
+
+if not api_key:
+    st.error("Bitte API Key hinterlegen, um zu starten.")
+    st.stop()
+
+# --- 10. CHAT ENGINE ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "chat" not in st.session_state or st.session_state.chat is None:
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
+        st.session_state.chat = model.start_chat(history=[])
+        response = st.session_state.chat.send_message("Start")
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
+    except Exception as e:
+        st.error(f"Verbindungsfehler: {e}")
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Deine Antwort..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        placeholder = st.empty()
+        try:
+            response = st.session_state.chat.send_message(prompt)
+            placeholder.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            if "429" in str(e):
+                placeholder.warning("🚦 Hochbetrieb... Ich versuche es gleich nochmal (Warte 3 Sek).")
+                time.sleep(3)
+                try:
+                    response = st.session_state.chat.send_message(prompt)
+                    placeholder.empty()
+                    placeholder.markdown(response.text)
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                except Exception as e2:
+                    placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
+            else:
+                placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
