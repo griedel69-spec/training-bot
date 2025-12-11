@@ -34,18 +34,47 @@ if not st.session_state.intro_complete:
     * ⚡ Komplexen **Beschwerden** & Reklamationen
     
     ---
-    ### 📱 Tipp für Smartphone-Nutzer
-    Machen Sie das Training noch realistischer! 
-    Klicken Sie in das Antwortfeld und nutzen Sie die **Diktierfunktion (Mikrofon-Symbol)** Ihrer Tastatur. 
-    So sprechen Sie direkt mit dem Kunden, statt zu tippen.
+    ### 📱 Wichtig für Smartphone-Nutzer
+    
+    **1. Menü öffnen (Einstellungen):**
+    Die Auswahl der Szenarien und des Schwierigkeitsgrads ist versteckt.
+    👉 Tippen Sie auf den kleinen **Pfeil (>) oben links** in der Ecke, um das Seitenmenü auszuklappen!
+    
+    **2. Sprachmodus nutzen:**
+    Machen Sie das Training noch realistischer! Klicken Sie in das Antwortfeld und nutzen Sie die **Diktierfunktion (Mikrofon-Symbol)** Ihrer Tastatur. So sprechen Sie direkt mit dem Kunden.
     ---
     """)
+    
+    # --- ÜBER DEN ENTWICKLER ---
+    st.markdown("### Über den Entwickler")
+    
+    col1, col2 = st.columns([2, 1]) 
+    
+    with col1:
+        st.markdown("""
+        **Gernot Riedel** *Business Coach für Wandel & Innovation | KI-Trainer & Tourismusexperte*
+        
+        Als Impulsgeber und Möglichmacher begleite ich Menschen und Unternehmen im Tourismus in die Zukunft. 
+        Mit über 30 Jahren Expertise im Destinationsmanagement verbinde ich in diesem Tool praxisnahes Erfahrungswissen mit modernster KI-Technologie.
+        
+        🌐 [www.gernot-riedel.com](https://gernot-riedel.com)
+        """)
+        
+    with col2:
+        # Hier ist dein Bild integriert:
+        foto_url = "https://i0.wp.com/gernot-riedel.com/wp-content/uploads/2025/10/0001_1_a-professional-studio-portrait-of-a-man-_YoM_S1lERweiV9zvqmLV8Q_oh8z0trpT7aaGJaThqBBDA-e1759400436641.jpeg?fit=816%2C825&ssl=1&resize=972%2C984"
+        try:
+            st.image(foto_url, width=150, caption="Gernot Riedel")
+        except:
+            st.info("Foto konnte nicht geladen werden.")
+
+    st.markdown("---")
     
     if st.button("🚀 Training jetzt starten"):
         st.session_state.intro_complete = True
         st.rerun()
         
-    st.stop() # Stoppt hier, bis geklickt wird
+    st.stop()
 
 # --- 5. LOGIN LOGIK ---
 if not st.session_state.authenticated:
@@ -290,102 +319,103 @@ if "current_difficulty" not in st.session_state:
     st.session_state.current_difficulty = DIFFICULTY_PROMPTS["🔴 Schwer"]
 
 # --- 10. HAUPTBEREICH ANZEIGE ---
-st.title(f"Training: {kategorie}")
+if st.session_state.intro_complete:
+    st.title(f"Training: {kategorie}")
 
-with st.expander("ℹ️ Aktuelles Szenario (Bitte lesen)", expanded=True):
-    st.info(st.session_state.current_scenario)
-    if "KOOPERATIV" in st.session_state.current_difficulty:
-        st.success("Modus: 🟢 Einfach (Kooperativ)")
-    elif "FORDERND" in st.session_state.current_difficulty:
-        st.warning("Modus: 🟡 Mittel (Fordernd)")
-    else:
-        st.error("Modus: 🔴 Schwer (Eskalation)")
+    with st.expander("ℹ️ Aktuelles Szenario (Bitte lesen)", expanded=True):
+        st.info(st.session_state.current_scenario)
+        if "KOOPERATIV" in st.session_state.current_difficulty:
+            st.success("Modus: 🟢 Einfach (Kooperativ)")
+        elif "FORDERND" in st.session_state.current_difficulty:
+            st.warning("Modus: 🟡 Mittel (Fordernd)")
+        else:
+            st.error("Modus: 🔴 Schwer (Eskalation)")
 
-# --- 11. KI KONFIGURATION ---
-SYSTEM_INSTRUCTION = f"""
-Du bist KEINE KI. Du bist ein echter Mensch in einer Stresssituation (Gast oder Kunde).
-Dies ist eine Simulation für Mitarbeiter im Service/Handel.
-Deine Aufgabe ist es, absolut realistisch zu wirken.
+    # --- 11. KI KONFIGURATION ---
+    SYSTEM_INSTRUCTION = f"""
+    Du bist KEINE KI. Du bist ein echter Mensch in einer Stresssituation (Gast oder Kunde).
+    Dies ist eine Simulation für Mitarbeiter im Service/Handel.
+    Deine Aufgabe ist es, absolut realistisch zu wirken.
 
-DEINE ROLLE & SZENARIO:
-{st.session_state.current_scenario}
+    DEINE ROLLE & SZENARIO:
+    {st.session_state.current_scenario}
 
-DEIN VERHALTEN & HARTNÄCKIGKEIT:
-{st.session_state.current_difficulty}
+    DEIN VERHALTEN & HARTNÄCKIGKEIT:
+    {st.session_state.current_difficulty}
 
-DIE REGELN FÜR REALISMUS:
-1. DEIN GEGENÜBER: Du sprichst IMMER mit einem MITARBEITER (Rezeptionist, Kellner, Verkäufer, etc.). Du sprichst NIE mit anderen Gästen/Kunden.
+    DIE REGELN FÜR REALISMUS:
+    1. DEIN GEGENÜBER: Du sprichst IMMER mit einem MITARBEITER (Rezeptionist, Kellner, Verkäufer, etc.). Du sprichst NIE mit anderen Gästen/Kunden.
 
-2. SPRACHE: Sprich gesprochene Alltagssprache!
-   - Nutze kurze Sätze.
-   - Wenn du wütend bist: Nutze Ausrufezeichen, Großschreibung für Betonung, wiederhole dich.
-   - Vermeide "gestelzte" Sprache. Sag lieber: "Das geht gar nicht!"
+    2. SPRACHE: Sprich gesprochene Alltagssprache!
+       - Nutze kurze Sätze.
+       - Wenn du wütend bist: Nutze Ausrufezeichen, Großschreibung für Betonung, wiederhole dich.
+       - Vermeide "gestelzte" Sprache. Sag lieber: "Das geht gar nicht!"
 
-3. KEIN SCHNELLES NACHGEBEN (Besonders bei ROT/GELB):
-   - Lass dich nicht von der ersten Floskel ("Tut mir leid") beruhigen.
-   - Teste, ob der Mitarbeiter es ernst meint.
-   - Sei ruhig auch mal unfair oder emotional.
+    3. KEIN SCHNELLES NACHGEBEN (Besonders bei ROT/GELB):
+       - Lass dich nicht von der ersten Floskel ("Tut mir leid") beruhigen.
+       - Teste, ob der Mitarbeiter es ernst meint.
+       - Sei ruhig auch mal unfair oder emotional.
 
-4. START: Beginne das Gespräch sofort und direkt mit deinem Problem.
+    4. START: Beginne das Gespräch sofort und direkt mit deinem Problem.
 
-COACHING MODUS:
-Erst wenn der User das Codewort "FEEDBACK" schreibt (oder die Situation perfekt gelöst hat), legst du die Rolle ab.
-Dann bist du ein sachlicher Kommunikationstrainer und gibst Feedback:
-- Was war gut?
-- Was war schlecht?
-- 3 bessere Formulierungen.
-"""
+    COACHING MODUS:
+    Erst wenn der User das Codewort "FEEDBACK" schreibt (oder die Situation perfekt gelöst hat), legst du die Rolle ab.
+    Dann bist du ein sachlicher Kommunikationstrainer und gibst Feedback:
+    - Was war gut?
+    - Was war schlecht?
+    - 3 bessere Formulierungen.
+    """
 
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except:
-    with st.sidebar:
-        st.warning("⚠️ API Key nicht in Secrets gefunden.")
-        api_key = st.text_input("API Key manuell eingeben", type="password")
-
-if not api_key:
-    st.error("Bitte API Key hinterlegen, um zu starten.")
-    st.stop()
-
-# --- 12. CHAT ENGINE ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "chat" not in st.session_state or st.session_state.chat is None:
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
-        st.session_state.chat = model.start_chat(history=[])
-        response = st.session_state.chat.send_message("Start")
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
-    except Exception as e:
-        st.error(f"Verbindungsfehler: {e}")
+        api_key = st.secrets["GOOGLE_API_KEY"]
+    except:
+        with st.sidebar:
+            st.warning("⚠️ API Key nicht in Secrets gefunden.")
+            api_key = st.text_input("API Key manuell eingeben", type="password")
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if not api_key:
+        st.error("Bitte API Key hinterlegen, um zu starten.")
+        st.stop()
 
-if prompt := st.chat_input("Deine Antwort..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # --- 12. CHAT ENGINE ---
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
+    if "chat" not in st.session_state or st.session_state.chat is None:
         try:
-            response = st.session_state.chat.send_message(prompt)
-            placeholder.markdown(response.text)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
+            st.session_state.chat = model.start_chat(history=[])
+            response = st.session_state.chat.send_message("Start")
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            if "429" in str(e):
-                placeholder.warning("🚦 Hochbetrieb... Ich versuche es gleich nochmal (Warte 3 Sek).")
-                time.sleep(3)
-                try:
-                    response = st.session_state.chat.send_message(prompt)
-                    placeholder.empty()
-                    placeholder.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                except Exception as e2:
-                    placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
-            else:
-                placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
+            st.error(f"Verbindungsfehler: {e}")
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("Deine Antwort..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            placeholder = st.empty()
+            try:
+                response = st.session_state.chat.send_message(prompt)
+                placeholder.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except Exception as e:
+                if "429" in str(e):
+                    placeholder.warning("🚦 Hochbetrieb... Ich versuche es gleich nochmal (Warte 3 Sek).")
+                    time.sleep(3)
+                    try:
+                        response = st.session_state.chat.send_message(prompt)
+                        placeholder.empty()
+                        placeholder.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    except Exception as e2:
+                        placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
+                else:
+                    placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
