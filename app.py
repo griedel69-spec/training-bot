@@ -309,7 +309,7 @@ if "chat" not in st.session_state or st.session_state.chat is None:
     try:
         genai.configure(api_key=api_key)
         # Wir nutzen das modernste Modell
-        model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
+        model = genai.GenerativeModel("gemini-1.5-flash", system_instruction=SYSTEM_INSTRUCTION)
         st.session_state.chat = model.start_chat(history=[])
         
         # Erster Satz der KI triggern
@@ -338,6 +338,7 @@ if prompt := st.chat_input("Deine Antwort..."):
             st.markdown(response.text)
     except Exception as e:
         st.error(f"Fehler bei der Antwort: {e}")
+
 
 
 
