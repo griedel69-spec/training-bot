@@ -5,7 +5,7 @@ import random
 import time
 
 # --- 1. SEITEN-KONFIGURATION ---
-st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎚️")
+st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎓")
 
 # --- 2. ZUGANGSDATEN ---
 PW_KUNDE = "Start2025"     # Code für Kunden (begrenzt auf 3 Versuche)
@@ -44,7 +44,7 @@ if st.session_state.user_role == "kunde":
         st.balloons()
         st.warning("🏁 Die kostenlose Demo-Phase ist beendet.")
         
-        # Hier war der Fehler. Jetzt stabilisiert durch Variable:
+        # Stabile Text-Variable um Syntax-Fehler zu vermeiden
         msg = f"""
         ### Vielen Dank fürs Testen!
         Sie haben {MAX_VERSUCHE} Szenarien absolviert.
@@ -76,7 +76,7 @@ VARIANTS_HOTEL = [
     
     """Deine Rolle: Herr Schuster, ein Gast.
     Situation: 23:00 Uhr. Nachbarn schauen laut TV. Du kannst nicht schlafen.
-    Verhalten: Du forderst Ruhe.""",
+    Verhalten: Du rufst an der Rezeption an und forderst Ruhe.""",
 
     """Deine Rolle: Frau Brandstätter, Geschäftsreisende.
     Situation: 7:00 Uhr. Weckruf für 6:30 Uhr kam nie. Meeting verpasst.
@@ -214,9 +214,9 @@ with st.sidebar:
     )
 
     DIFFICULTY_PROMPTS = {
-        "🟢 Einfach": "LEVEL: NIEDRIG (3/10). Der Gast ist höflich und nur leicht enttäuscht. Er ist kooperativ.",
-        "🟡 Mittel": "LEVEL: MITTEL (6/10). Der Gast ist genervt und bestimmt. Er diskutiert, bleibt aber sachlich.",
-        "🔴 Schwer": "LEVEL: EXTREM HOCH (10/10). Der Gast ist emotional, wütend, aggressiv oder arrogant. Schwer zu beruhigen."
+        "🟢 Einfach": "LEVEL: NIEDRIG (3/10). Du bist höflich und nur leicht enttäuscht. Du bist kooperativ.",
+        "🟡 Mittel": "LEVEL: MITTEL (6/10). Du bist genervt und bestimmt. Du diskutierst, bleibst aber sachlich.",
+        "🔴 Schwer": "LEVEL: EXTREM HOCH (10/10). Du bist emotional, wütend, aggressiv oder arrogant. Schwer zu beruhigen."
     }
 
     selected_difficulty_prompt = DIFFICULTY_PROMPTS[difficulty_selection]
@@ -272,7 +272,7 @@ with st.expander("ℹ️ Aktuelles Szenario (Bitte lesen)", expanded=True):
     else:
         st.error("Modus: 🔴 Schwer")
 
-# --- 9. KI KONFIGURATION ---
+# --- 9. KI KONFIGURATION (Das Herzstück) ---
 SYSTEM_INSTRUCTION = f"""
 Du bist ein professioneller Rollenspiel-Bot für Tourismus-Training.
 Deine Aufgabe ist es, die Rolle eines Gastes zu spielen.
@@ -284,10 +284,14 @@ ANWEISUNG ZUM VERHALTEN:
 {st.session_state.current_difficulty}
 Nutze NUR das oben genannte Level.
 
-ANWEISUNGEN:
-1. Bleib strikt in der Rolle.
-2. Reagiere dynamisch auf den User.
-3. WICHTIG: Wenn der User das Codewort "FEEDBACK" schreibt (oder das Problem perfekt gelöst hat),
+WICHTIGE RAHMENBEDINGUNGEN:
+1. DEIN GEGENÜBER: Du sprichst IMMER mit einem MITARBEITER des Unternehmens (Rezeptionist, Kellner, Verkäufer, Skilehrer).
+   Du sprichst NIEMALS mit anderen Gästen oder Nachbarn.
+   Wenn du dich beschwerst, dann beschwerst du dich BEIM Personal ÜBER die Situation.
+   
+2. START: Beginne das Gespräch so, als würdest du gerade an die Rezeption/den Schalter treten.
+
+3. FEEDBACK: Wenn der User das Codewort "FEEDBACK" schreibt (oder das Problem perfekt gelöst hat),
    wechsle die Persona. Du bist dann ein erfahrener Business-Coach.
    Gib eine professionelle Analyse: Was war gut? Was war schlecht? Gib 3 konkrete Formulierungstipps.
 """
