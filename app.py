@@ -5,7 +5,7 @@ import random
 import time
 
 # --- 1. SEITEN-KONFIGURATION ---
-st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎲")
+st.set_page_config(page_title="Tourismus-Trainer", page_icon="🎚️")
 
 # --- 2. ZUGANGSDATEN ---
 PW_KUNDE = "Start2025"     # Code für Kunden (begrenzt auf 3 Versuche)
@@ -60,275 +60,81 @@ if st.session_state.user_role == "kunde":
             st.rerun()
         st.stop()
 
-# --- 5. SZENARIEN POOL (Bereinigt) ---
-VARIANTS_HOTEL = [
-    """Deine Rolle: Herr Schuster, ein verärgerter Hotelgast.
-    Situation: Es ist 14:30 Uhr, du bist nass vom Regen geworden. Dein Zimmer (Junior Suite) ist noch nicht fertig.
-    Dein Verhalten: Du bist arrogant, ungeduldig und fordernd (Eskalationslevel 8/10). Du willst sofort duschen.""",
-    
-    """Deine Rolle: Herr Schuster, ein misstrauischer Hotelgast.
-    Situation: Du checkst gerade aus. Auf der Rechnung stehen 35€ für Champagner aus der Minibar.
-    Dein Verhalten: Du bestreitest vehement, diesen Champagner getrunken zu haben, und witterst Betrug. Du wirst laut.""",
-    
-    """Deine Rolle: Herr Schuster, ein genervter Hotelgast.
-    Situation: Es ist 23:00 Uhr. Du rufst von Zimmer 305 an. Die Nachbarn schauen laut Fernsehen, und du kannst nicht schlafen.
-    Dein Verhalten: Du bist wütend und forderst, dass der Lärm sofort aufhört, oder du verlangst ein anderes Zimmer.""",
+# --- 5. SZENARIEN POOL ---
+# (Die Texte bleiben gleich, aber das Level wird jetzt durch den Regler überschrieben)
 
-    """Deine Rolle: Frau Brandstätter, eine anspruchsvolle Geschäftsreisende.
-    Situation: Es ist 7:00 Uhr morgens. Du hast für 6:30 Uhr einen Weckruf bestellt, der nie kam. Jetzt hast du ein wichtiges Meeting verpasst.
-    Dein Verhalten: Du bist professionell wütend, verlangst eine schriftliche Entschuldigung und Kompensation (Eskalationslevel 9/10)."""
+VARIANTS_HOTEL = [
+    """Deine Rolle: Herr Schuster, ein Gast.
+    Situation: Es ist 14:30 Uhr, du bist nass vom Regen. Dein Zimmer (Junior Suite) ist noch nicht fertig.
+    Verhalten: Du willst sofort duschen.""",
+    
+    """Deine Rolle: Herr Schuster, ein Gast.
+    Situation: Du checkst aus. Rechnung: 35€ für Champagner aus der Minibar, den du nicht hattest.
+    Verhalten: Du witterst einen Fehler oder Betrug.""",
+    
+    """Deine Rolle: Herr Schuster, ein Gast.
+    Situation: 23:00 Uhr. Nachbarn schauen laut TV. Du kannst nicht schlafen.
+    Verhalten: Du forderst Ruhe.""",
+
+    """Deine Rolle: Frau Brandstätter, Geschäftsreisende.
+    Situation: 7:00 Uhr. Weckruf für 6:30 Uhr kam nie. Meeting verpasst.
+    Verhalten: Du verlangst Kompensation."""
 ]
 
 VARIANTS_SKISCHULE = [
-    """Deine Rolle: Eine überbesorgte Mutter („Helikopter-Mom“).
-    Situation: Dein Kind (Leo, 6 Jahre) ist gerade aus dem Skikurs gekommen und hat geweint.
-    Dein Verhalten: Du machst dem Skilehrer Vorwürfe, er hätte nicht auf Leo aufgepasst und ihn überfordert. Emotional, hysterisch, sehr beschützend.""",
+    """Deine Rolle: Eine Mutter.
+    Situation: Kind (Leo, 6) hat nach dem Skikurs geweint.
+    Verhalten: Du glaubst, der Lehrer hat nicht aufgepasst.""",
     
-    """Deine Rolle: Ein besserwisserischer Vater.
-    Situation: Dein Sohn wurde in Skigruppe 3 eingeteilt.
-    Dein Verhalten: Du bist felsenfest davon überzeugt, dein Sohn sei ein „Naturtalent“ und gehöre in Gruppe 1. Du siehst dies als Beleidigung und forderst eine sofortige Umgruppierung.""",
+    """Deine Rolle: Ein Vater.
+    Situation: Sohn ist in Gruppe 3, du denkst er gehört in Gruppe 1 (Profi).
+    Verhalten: Du siehst das als Fehleinschätzung.""",
     
-    """Deine Rolle: Ein sturer Kunde, der Geld zurück will.
-    Situation: Dein Kind ist nach nur einer Stunde Skikurs krank geworden.
-    Dein Verhalten: Du verlangst die volle Rückerstattung für den gesamten 5-Tages-Skikurs, obwohl der Kurs schon begonnen hat. Du bist uneinsichtig und lässt nicht mit dir reden.""",
+    """Deine Rolle: Ein Kunde.
+    Situation: Kind nach 1 Stunde krank. Du willst Geld für 5 Tage zurück.
+    Verhalten: Du pochst auf Rückerstattung.""",
 
-    """Deine Rolle: Herr Lechner, ein frustrierter Wiederholungskäufer.
-    Situation: Du hast für deine Tochter (10 Jahre) einen Fortgeschrittenen-Kurs gebucht. Der Lehrer behandelt sie wie eine Anfängerin. Es ist bereits der 3. Tag.
-    Dein Verhalten: Du bist enttäuscht, fühlst dich getäuscht, überlegst den Kurs abzubrechen (Eskalationslevel 6/10)."""
+    """Deine Rolle: Herr Lechner.
+    Situation: Tochter (10) lernt im Kurs nichts Neues. Tag 3.
+    Verhalten: Du bist enttäuscht."""
 ]
 
 VARIANTS_SEILBAHN = [
-    """Deine Rolle: Ein aggressiver Skifahrer.
-    Situation: Dein teurer Skipass funktioniert nicht am Drehkreuz. Du stehst seit 20 Minuten an der Kasse.
-    Dein Verhalten: Du bist laut, aggressiv und hast es eilig. Du behauptest, das System sei defekt und forderst sofortigen Einlass.""",
+    """Deine Rolle: Ein Skifahrer.
+    Situation: Skipass geht nicht am Drehkreuz. 20 Min Wartezeit.
+    Verhalten: Du hast es eilig und bist genervt.""",
     
-    """Deine Rolle: Ein uneinsichtiger Gast.
-    Situation: Es ist 11:00 Uhr morgens, und die oberen Lifte wurden wegen aufkommendem Sturm geschlossen.
-    Dein Verhalten: Du forderst dein Geld für die Tageskarte zurück, obwohl du die Lifte im unteren Bereich bereits genutzt hast. Du argumentierst, dass du für "alle Lifte" bezahlt hast.""",
+    """Deine Rolle: Ein Gast.
+    Situation: 11:00 Uhr, obere Lifte wegen Sturm zu.
+    Verhalten: Du willst Geld für die Tageskarte zurück.""",
 
-    """Deine Rolle: Frau Müller, eine ängstliche Seniorin.
-    Situation: Es ist 9:00 Uhr. Du möchtest mit der Gondel auf den Berg, aber die Kabine schaukelt stark im Wind. Du hast Höhenangst.
-    Dein Verhalten: Du bist verstört, unsicher, willst umkehren, fühlst dich allein gelassen (Eskalationslevel 4/10).""",
+    """Deine Rolle: Frau Müller, Seniorin.
+    Situation: 9:00 Uhr. Gondel schaukelt im Wind. Höhenangst.
+    Verhalten: Du hast Angst und fühlst dich unsicher.""",
 
-    """Deine Rolle: Familie Hofer, verärgerte Gäste mit Kleinkindern.
-    Situation: Es ist 14:00 Uhr, 35°C. Ihr wartet seit 45 Minuten in der prallen Sonne auf die Talfahrt. Die Warteschlange bewegt sich kaum.
-    Dein Verhalten: Die Kinder weinen, du bist genervt und forderst eine Lösung (Eskalationslevel 7/10)."""
+    """Deine Rolle: Familie Hofer.
+    Situation: 14:00 Uhr, 35°C. 45 Min Warten auf Talfahrt in der Sonne.
+    Verhalten: Kinder weinen, Eltern gestresst."""
 ]
 
 VARIANTS_RESTAURANT = [
-    """Deine Rolle: Frau Berger, eine anspruchsvolle Restaurantgästin.
-    Situation: Es ist 20:15 Uhr, du hast vor 45 Minuten bestellt, aber das Essen ist noch nicht da. Du siehst andere Gäste essen, die nach dir kamen.
-    Verhalten: Du bist genervt, ungeduldig und zweifelst an der Kompetenz (Eskalationslevel 7/10).""",
+    """Deine Rolle: Frau Berger.
+    Situation: 45 Min auf Essen gewartet. Andere bekamen es früher.
+    Verhalten: Du zweifelst an der Organisation.""",
     
-    """Deine Rolle: Herr Moser, ein Gast mit Allergie.
-    Situation: Es ist 19:30 Uhr, du hast beim Bestellen ausdrücklich erwähnt, dass du eine Nussallergie hast. Jetzt entdeckst du Nüsse im Essen.
-    Verhalten: Du bist besorgt, enttäuscht und fühlst dich nicht ernst genommen (Eskalationslevel 6/10).""",
+    """Deine Rolle: Herr Moser (Allergiker).
+    Situation: Nüsse im Essen trotz Warnung.
+    Verhalten: Du bist besorgt um deine Gesundheit.""",
     
-    """Deine Rolle: Familie Huber (Vater spricht), unzufriedene Gäste.
-    Situation: Es ist 12:30 Uhr Mittagszeit, du hast für 6 Personen reserviert. Der Tisch steht direkt neben der lauten Küchentür und der Kinderstuhl fehlt.
-    Verhalten: Du bist gestresst, die Kinder sind ungeduldig, du erwartest eine schnelle Lösung (Eskalationslevel 7/10).""",
+    """Deine Rolle: Familie Huber.
+    Situation: Tisch neben lauter Küchentür, Kinderstuhl fehlt.
+    Verhalten: Gestresst, erwartest Lösung.""",
 
-    """Deine Rolle: Herr Zeller, ein unzufriedener Geschäftsmann.
-    Situation: Es ist 13:00 Uhr. Du hast ein Geschäftsessen mit wichtigen Kunden. Der Service ist langsam, das Essen kalt, die Weinempfehlung falsch.
-    Dein Verhalten: Du bist peinlich berührt vor deinen Kunden, diskret aber bestimmt verärgert (Eskalationslevel 8/10)."""
+    """Deine Rolle: Herr Zeller.
+    Situation: Geschäftsessen. Service langsam, Essen kalt.
+    Verhalten: Peinlich berührt vor Kunden."""
 ]
 
 VARIANTS_WELLNESS = [
-    """Deine Rolle: Frau Dr. Schmidt, eine gestresste Managerin.
-    Situation: Es ist 16:00 Uhr, du hast eine 90-minütige Premium-Massage für 180€ gebucht. Nach 60 Minuten wirst du geweckt - die Massage ist fertig.
-    Verhalten: Du bist enttäuscht, fühlst dich betrogen und erwartest eine Erklärung (Eskalationslevel 8/10).""",
-    
-    """Deine Rolle: Herr Wagner, ein hygienebewusster Gast.
-    Situation: Es ist 10:00 Uhr, du kommst in den Saunabereich. Du entdeckst Haare auf der Liege, benutzte Handtücher liegen herum, der Boden ist nass.
-    Verhalten: Du bist angeekelt, zweifelst an der Sauberkeit des gesamten Betriebs (Eskalationslevel 7/10).""",
-    
-    """Deine Rolle: Frau Steiner, eine enttäuschte Stammkundin.
-    Situation: Es ist 14:30 Uhr, du hast seit 3 Wochen deine "Lieblingsbehandlung" gebucht. Jetzt erfährst du 5 Minuten vorher, dass deine Therapeutin krank ist und eine Aushilfe einspringt.
-    Verhalten: Du bist frustriert, fühlst dich nicht wertgeschätzt, überlegst zu gehen (Eskalationslevel 6/10).""",
-
-    """Deine Rolle: Herr Fink, ein enttäuschter Wellness-Gast.
-    Situation: Es ist 18:00 Uhr. Du hast für 150€ ein "Entspannungspaket" gebucht. Die Sauna war überfüllt, der Ruheraum laut, das versprochene Getränk nie gebracht.
-    Verhalten: Du bist ruhig aber bestimmt enttäuscht, willst eine Teilrückerstattung (Eskalationslevel 5/10)."""
-]
-
-VARIANTS_EINZELHANDEL = [
-    """Deine Rolle: Herr Bauer, ein enttäuschter Tourist.
-    Situation: Es ist 17:00 Uhr, du hast gestern eine teure Jacke für 250€ gekauft. Heute entdeckst du einen Riss. Du kommst zurück zum Geschäft.
-    Verhalten: Du bist verärgert, vermutest Betrug, willst sofort dein Geld zurück (Eskalationslevel 7/10).""",
-    
-    """Deine Rolle: Frau Novak, eine Touristin mit Sprachbarriere.
-    Situation: Es ist 15:30 Uhr, du möchtest ein Souvenir umtauschen (falsches Motiv gekauft). Du sprichst schlecht Deutsch. Der Kassenbon ist auf Deutsch.
-    Verhalten: Du bist unsicher, frustriert wegen der Sprachbarriere, fühlst dich unverstanden (Eskalationslevel 5/10).""",
-    
-    """Deine Rolle: Herr Gruber, ein ungeduldiger Kunde.
-    Situation: Es ist 11:00 Uhr Samstagvormittag, großer Andrang. Du wartest schon 10 Minuten an der Kasse, vor dir stehen noch 4 Personen. Nur eine Kasse ist besetzt.
-    Verhalten: Du bist genervt, hast wenig Zeit, wirst zunehmend lauter (Eskalationslevel 6/10).""",
-
-    """Deine Rolle: Herr Steiner, ein enttäuschter Sammler.
-    Situation: Es ist 16:00 Uhr. Du hast ein limitiertes Souvenir online reserviert und extra 50km Anfahrt auf dich genommen. Jetzt ist es "leider schon verkauft".
-    Verhalten: Du bist verärgert, fühlst dich hinters Licht geführt, willst eine Erklärung und Kompensation (Eskalationslevel 8/10)."""
-]
-
-VARIANTS_TOURISTINFO = [
-    """Deine Rolle: Familie Maier (Mutter spricht), enttäuschte Urlauber.
-    Situation: Es ist 9:30 Uhr, gestern habt ihr aufgrund einer Empfehlung der Tourist-Info einen Ausflug gebucht (4 Personen, 280€). Wegen Schlechtwetter wurde er abgesagt - keine Rückerstattung.
-    Verhalten: Du bist wütend, fühlst dich falsch beraten, willst eine Lösung (Eskalationslevel 8/10).""",
-    
-    """Deine Rolle: Herr Kovac, ein verärgerter Tourist.
-    Situation: Es ist 14:00 Uhr, du hast heute Morgen basierend auf Info-Material eine Wanderung gemacht. Der Weg war gesperrt (nicht im Material erwähnt), du musstest 2 Stunden Umweg gehen.
-    Verhalten: Du bist erschöpft, verärgert über die veralteten Infos, willst eine Entschuldigung (Eskalationslevel 6/10).""",
-    
-    """Deine Rolle: Frau Weber, eine überforderte Seniorin.
-    Situation: Es ist 13:00 Uhr, du suchst Informationen zu barrierefreien Ausflügen. Die Broschüren sind unübersichtlich, niemand hat Zeit für dich, du fühlst dich allein gelassen.
-    Verhalten: Du bist frustriert, fühlst dich nicht ernst genommen, erwartest persönliche Beratung (Eskalationslevel 5/10).""",
-
-    """Deine Rolle: Herr Wimmer, ein verwirrter Tourist aus Deutschland.
-    Situation: Es ist 15:30 Uhr. Du hast dir eine "Erlebnis-Card" für 89€ gekauft. Jetzt erfährst du, dass 3 der beworbenen Attraktionen geschlossen sind.
-    Verhalten: Du fühlst dich betrogen, willst dein Geld zurück oder Ersatz (Eskalationslevel 7/10)."""
-]
-
-# --- 6. SEITENLEISTE (Steuerung) ---
-with st.sidebar:
-    # Info-Anzeige für den User
-    if st.session_state.user_role == "kunde":
-        st.write(f"Test-Modus: Runde {st.session_state.demo_versuche + 1} von {MAX_VERSUCHE}")
-        st.progress((st.session_state.demo_versuche) / MAX_VERSUCHE)
-    else:
-        st.success(f"Angemeldet als: {PW_ADMIN} (Admin)")
-
-    st.header("🎭 Einstellung")
-    # Hier werden alle verfügbaren Kategorien gelistet
-    kategorie = st.selectbox(
-        "Bereich wählen:", 
-        ("Hotel", "Skischule", "Seilbahn", "Restaurant", "Wellness/Spa", "Einzelhandel", "Touristeninformation")
-    )
-    
-    st.markdown("---")
-    st.write("👇 Nächstes Training:")
-    
-    # Der "Würfel"-Button
-    if st.button("🎲 Neue Situation würfeln"):
-        # Zähler nur erhöhen, wenn es ein Kunde ist
-        if st.session_state.user_role == "kunde":
-            st.session_state.demo_versuche += 1
-            
-        # Chat resetten
-        st.session_state.messages = []
-        st.session_state.chat = None
-        
-        # Würfeln (WICHTIG: Alles muss korrekt eingerückt sein!)
-        if kategorie == "Hotel":
-            st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
-        elif kategorie == "Skischule":
-            st.session_state.current_scenario = random.choice(VARIANTS_SKISCHULE)
-        elif kategorie == "Seilbahn":
-            st.session_state.current_scenario = random.choice(VARIANTS_SEILBAHN)
-        elif kategorie == "Restaurant":
-            st.session_state.current_scenario = random.choice(VARIANTS_RESTAURANT)
-        elif kategorie == "Wellness/Spa":
-            st.session_state.current_scenario = random.choice(VARIANTS_WELLNESS)
-        elif kategorie == "Einzelhandel":
-            st.session_state.current_scenario = random.choice(VARIANTS_EINZELHANDEL)
-        elif kategorie == "Touristeninformation":
-            st.session_state.current_scenario = random.choice(VARIANTS_TOURISTINFO)
-            
-        st.rerun() 
-
-    st.markdown("---")
-    if st.button("Logout"):
-        st.session_state.authenticated = False
-        st.rerun()
-
-# --- 7. INITIALISIERUNG (Erster Start) ---
-if "current_scenario" not in st.session_state:
-    st.session_state.current_scenario = random.choice(VARIANTS_HOTEL)
-
-# --- 8. HAUPTBEREICH ANZEIGE ---
-st.title(f"Training: {kategorie}")
-
-# Schöne Box für das Szenario
-with st.expander("ℹ️ Aktuelles Szenario (Bitte lesen)", expanded=True):
-    st.info(st.session_state.current_scenario)
-
-# --- 9. KI KONFIGURATION ---
-SYSTEM_INSTRUCTION = f"""
-Du bist ein professioneller Rollenspiel-Bot für Tourismus-Training.
-Deine Aufgabe ist es, die Rolle eines schwierigen Gastes/Kunden zu spielen.
-{st.session_state.current_scenario}
-
-ANWEISUNGEN:
-1. Bleib strikt in der Rolle und verhalte dich entsprechend des Szenarios (Du bist der Gast!).
-2. Reagiere auf die Antworten des Users (der den Mitarbeiter spielt).
-3. WICHTIG: Wenn der User das Codewort "FEEDBACK" schreibt (oder die Situation hervorragend gelöst hat),
-   wechsle die Persona. Du bist dann ein erfahrener Business-Coach.
-   Gib eine professionelle Analyse der Kommunikation: Was war gut? Wo gab es Verbesserungspotenzial?
-   Biete 3 konkrete, bessere Formulierungsvorschläge für die kritischen Punkte an.
-"""
-
-# API Key holen
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except:
-    with st.sidebar:
-        st.warning("⚠️ API Key nicht in Secrets gefunden.")
-        api_key = st.text_input("API Key manuell eingeben", type="password")
-
-if not api_key:
-    st.error("Bitte API Key hinterlegen, um zu starten.")
-    st.stop()
-
-# --- 10. CHAT ENGINE (Mit Retry-Schutz) ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "chat" not in st.session_state or st.session_state.chat is None:
-    try:
-        genai.configure(api_key=api_key)
-        # Upgrade auf besseres Modell
-        model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
-        st.session_state.chat = model.start_chat(history=[])
-        response = st.session_state.chat.send_message("Start")
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
-    except Exception as e:
-        st.error(f"Verbindungsfehler: {e}")
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# EINGABE & RETRY LOGIK (Der Airbag)
-if prompt := st.chat_input("Deine Antwort..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
-        try:
-            # Versuch 1
-            response = st.session_state.chat.send_message(prompt)
-            placeholder.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-            
-        except Exception as e:
-            # Wenn Fehler 429 (Zu schnell) kommt:
-            if "429" in str(e):
-                placeholder.warning("🚦 Hochbetrieb... Ich versuche es gleich nochmal (Warte 3 Sek).")
-                time.sleep(3)
-                try:
-                    # Versuch 2
-                    response = st.session_state.chat.send_message(prompt)
-                    placeholder.empty()
-                    placeholder.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                except Exception as e2:
-                    placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
-            else:
-                placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
-
-
-
-
-
-
-
+    """Deine Rolle: Frau Dr. Schmidt.
+    Situation: 90min Massage
