@@ -8,7 +8,7 @@ import time
 st.set_page_config(page_title="Service-Training KI", page_icon="🎓")
 
 # --- 2. ZUGANGSDATEN ---
-PW_KUNDE = "Start2025"     # Code für Kunden
+PW_KUNDE = "Start2026"     # Code für Kunden
 PW_ADMIN = "GernotChef"    # Dein Code
 MAX_VERSUCHE = 3           # Anzahl der Versuche für Kunden
 
@@ -342,3 +342,4 @@ else:
                         placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
                 else:
                     placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
+
