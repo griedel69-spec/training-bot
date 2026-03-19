@@ -307,7 +307,7 @@ else:
     if "chat" not in st.session_state or st.session_state.chat is None:
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.0-flash", system_instruction=SYSTEM_INSTRUCTION)
+            model = genai.GenerativeModel("gemini-3.1-flash-lite-preview", system_instruction=SYSTEM_INSTRUCTION)
             st.session_state.chat = model.start_chat(history=[])
             response = st.session_state.chat.send_message("Start")
             st.session_state.messages.append({"role": "assistant", "content": response.text})
@@ -342,4 +342,5 @@ else:
                         placeholder.error("Der Server ist gerade überlastet. Bitte warte einen Moment.")
                 else:
                     placeholder.error(f"Ein Fehler ist aufgetreten: {e}")
+
 
